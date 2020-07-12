@@ -34,7 +34,7 @@ type Label struct {
 }
 
 // NewLabel creates a new label using the given name and value.
-func NewLabel(name, value string) Label {
+func (r *Registry) NewLabel(name, value string) Label {
 	return Label{name, value}
 }
 
@@ -137,6 +137,33 @@ func (r *Registry) NewInfo(
 
 	if _, exists := r.metrics[name]; exists {
 		return nil, fmt.Errorf("metric [%v] already exists", name)
+	}
+
+	if len(labels) == 0 {
+		return nil, fmt.Errorf("at least one label should be set")
+	}
+
+	info := &Info{
+		name:   name,
+		labels: processLabels(labels),
+	}
+
+	r.metrics[name] = info
+	return info, nil
+}
+
+// UpdateInfo updates existing info metric which will be exposed
+// through the metrics server. In case a metric doesn't exists, an error
+// will be returned.
+func (r *Registry) UpdateInfo(
+	name string,
+	labels []Label,
+) (*Info, error) {
+	r.metricsMutex.Lock()
+	defer r.metricsMutex.Unlock()
+
+	if _, exists := r.metrics[name]; !exists {
+		return nil, fmt.Errorf("metric [%v] doesn't exist", name)
 	}
 
 	if len(labels) == 0 {
