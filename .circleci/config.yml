@@ -1,31 +1,13 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
-
-executors:
-  docker-go:
-    docker:
-      - image: circleci/golang:1.13
-
-jobs:
-  test-go:
-    executor: docker-go
-    steps:
-      - checkout
-      - run:
-          name: Create test directories
-          command: |
-            mkdir -p test-results/keep-common
-      - run:
-          name: Run Go generators
-          command: |
-            go generate ./.../gen
-      - run:
-          name: Run Go tests
-          command: |
-            gotestsum --junitfile test-results/keep-common/unit-tests.xml
-      - store_test_results:
-          path: test-results
+# Use a package of configuration called an orb.
+orbs:
+  # Declare a dependency on the welcome-orb
+  welcome: circleci/welcome-orb@0.4.1
+# Orchestrate or schedule a set of jobs
 workflows:
-  version: 2
-  test:
+  # Name the workflow "welcome"
+  welcome:
+    # Run the welcome/run job in its own container
     jobs:
-      - test-go
+      - welcome/run
